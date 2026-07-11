@@ -58,6 +58,7 @@ export interface Conversation {
   id: string;
   type: "DIRECT" | "GROUP";
   name?: string | null;
+  image?: string | null;
   createdById?: string | null;
   participant?: PublicUser;
   members?: PublicUser[];

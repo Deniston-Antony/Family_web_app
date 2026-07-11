@@ -69,6 +69,7 @@ type ConversationWithRelations = {
   id: string;
   type: "DIRECT" | "GROUP";
   name: string | null;
+  image: string | null;
   createdById: string | null;
   updatedAt: Date;
   participants: Array<{
@@ -132,6 +133,7 @@ export async function formatConversationForUser(
     return {
       ...base,
       name: conversation.name,
+      image: conversation.image,
       createdById: conversation.createdById,
       members,
       memberCount: members.length,

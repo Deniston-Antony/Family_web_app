@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Users } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -85,9 +84,7 @@ export function ConversationList({ onSelect }: ConversationListProps) {
             )}
           >
             {isGroup ? (
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                <Users className="h-5 w-5 text-primary" />
-              </div>
+              <Avatar src={conversation.image} name={title} size="md" />
             ) : (
               <Avatar
                 src={conversation.participant?.profilePicture}

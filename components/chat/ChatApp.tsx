@@ -69,6 +69,24 @@ export function ChatApp() {
     handleSelectConversation(conversation);
   };
 
+  const handleGroupUpdated = (conversation: Conversation | null) => {
+    if (!conversation) {
+      setConversations((prev) =>
+        prev.filter((c) => c.id !== activeConversation?.id),
+      );
+      setActiveConversation(null);
+      setMobileView("conversations");
+      return;
+    }
+
+    setConversations((prev) =>
+      prev.map((c) => (c.id === conversation.id ? conversation : c)),
+    );
+    if (activeConversation?.id === conversation.id) {
+      setActiveConversation(conversation);
+    }
+  };
+
   const handleSelectFriend = (friend: PublicUser) => {
     setSelectedFriend(friend);
     setMobileView("details");
@@ -242,7 +260,10 @@ export function ChatApp() {
         )}
       >
         {activeConversation?.type === "GROUP" ? (
-          <GroupDetails conversation={activeConversation} />
+          <GroupDetails
+            conversation={activeConversation}
+            onConversationUpdate={handleGroupUpdated}
+          />
         ) : (
           <FriendDetails friend={selectedFriend} onMessage={handleMessageFriend} />
         )}

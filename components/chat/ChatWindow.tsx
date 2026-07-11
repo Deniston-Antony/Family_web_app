@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, Users } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MessageSkeleton } from "@/components/ui/Skeleton";
@@ -12,7 +12,7 @@ import { useChat } from "@/components/providers/ChatProvider";
 import { useChatSocket } from "@/hooks/useChatSocket";
 import { useAutoScroll } from "@/hooks/useAutoScroll";
 import { formatLastSeen } from "@/lib/utils";
-import type { Conversation, Message } from "@/types";
+import type { Message } from "@/types";
 
 interface ChatWindowProps {
   onBack?: () => void;
@@ -146,9 +146,7 @@ export function ChatWindow({ onBack, showBack }: ChatWindowProps) {
           </button>
         )}
         {isGroup ? (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-            <Users className="h-5 w-5 text-primary" />
-          </div>
+          <Avatar src={activeConversation.image} name={groupName} size="md" />
         ) : (
           participant && (
             <Avatar

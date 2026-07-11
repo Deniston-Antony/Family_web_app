@@ -90,6 +90,7 @@ model Conversation {
   id          String           @id @default(cuid())
   type        ConversationType @default(DIRECT)
   name        String?
+  image       String?
   createdById String?
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt

@@ -1,12 +1,24 @@
 import { NextRequest } from "next/server";
+import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { apiSuccess, apiError, handleApiError } from "@/lib/api-response";
-import prisma from "@/lib/prisma";
+import { formatConversationForUser } from "@/lib/conversations";
+import { getGroupConversation, isGroupMember } from "@/lib/groups";
 import { uploadImageFile } from "@/lib/upload-image";
 
-export async function POST(request: NextRequest) {
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
     const user = await requireAuth();
+    const { id } = await params;
+
+    const member = await isGroupMember(id, user.id);
+    if (!member) {
+      return apiError("Group not found", 404);
+    }
+
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
 
@@ -26,16 +38,22 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
     const ext = file.name.split(".").pop() ?? "jpg";
-    const filename = `${user.id}-${Date.now()}.${ext}`;
+    const filename = `${id}-${Date.now()}.${ext}`;
 
-    const profilePicture = await uploadImageFile(buffer, file.type, filename, user.id);
+    const image = await uploadImageFile(buffer, file.type, filename, `groups/${id}`);
 
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { profilePicture },
+    await prisma.conversation.update({
+      where: { id },
+      data: { image },
     });
 
-    return apiSuccess({ profilePicture });
+    const conversation = await getGroupConversation(id);
+    if (!conversation) {
+      return apiError("Group not found", 404);
+    }
+
+    const formatted = await formatConversationForUser(conversation, user.id);
+    return apiSuccess({ conversation: formatted, image });
   } catch (error) {
     return handleApiError(error);
   }

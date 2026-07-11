@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { cn, getDefaultAvatarUrl, getInitials } from "@/lib/utils";
 
@@ -18,6 +21,13 @@ export function Avatar({
   isOnline = false,
   className,
 }: AvatarProps) {
+  const fallbackSrc = getDefaultAvatarUrl(name);
+  const [imageSrc, setImageSrc] = useState(src?.trim() ? src : fallbackSrc);
+
+  useEffect(() => {
+    setImageSrc(src?.trim() ? src : fallbackSrc);
+  }, [src, fallbackSrc]);
+
   const sizes = {
     sm: "h-8 w-8 text-xs",
     md: "h-10 w-10 text-sm",
@@ -31,8 +41,6 @@ export function Avatar({
     lg: "h-3.5 w-3.5",
     xl: "h-4 w-4",
   };
-
-  const imageSrc = src || getDefaultAvatarUrl(name);
 
   return (
     <div className={cn("relative inline-flex shrink-0", className)}>
@@ -48,6 +56,7 @@ export function Avatar({
           fill
           className="object-cover"
           unoptimized
+          onError={() => setImageSrc(fallbackSrc)}
         />
       </div>
       {showOnline && (

@@ -83,6 +83,18 @@ export const createGroupSchema = z.object({
     .max(49, "Too many members"),
 });
 
+export const updateGroupNameSchema = z.object({
+  name: z.string().min(2, "Group name must be at least 2 characters").max(50),
+});
+
+export const addGroupMembersSchema = z.object({
+  memberIds: z.array(z.string().cuid()).min(1).max(49),
+});
+
+export const removeGroupMemberSchema = z.object({
+  memberId: z.string().cuid(),
+});
+
 export const searchSchema = z.object({
   query: z.string().min(1).max(100),
 });
