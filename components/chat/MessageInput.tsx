@@ -28,7 +28,7 @@ export function MessageInput({
   const [content, setContent] = useState("");
   const [showEmoji, setShowEmoji] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     if (editingMessage) {

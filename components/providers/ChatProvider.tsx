@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback, type Dispatch, type SetStateAction } from "react";
 import type { Conversation, Message, PublicUser } from "@/types";
 
 interface ChatContextType {
@@ -9,7 +9,7 @@ interface ChatContextType {
   messages: Message[];
   selectedFriend: PublicUser | null;
   typingUsers: Record<string, string[]>;
-  setConversations: (conversations: Conversation[]) => void;
+  setConversations: Dispatch<SetStateAction<Conversation[]>>;
   setActiveConversation: (conversation: Conversation | null) => void;
   setMessages: (messages: Message[]) => void;
   addMessage: (message: Message) => void;

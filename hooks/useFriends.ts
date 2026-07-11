@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Friendship, FriendRequest } from "@/types";
-import { sortFriendsAlphabetically } from "@/lib/utils";
 
 export function useFriends() {
   const [friends, setFriends] = useState<Friendship[]>([]);
@@ -15,7 +14,11 @@ export function useFriends() {
       const res = await fetch("/api/friends");
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
-      setFriends(sortFriendsAlphabetically(data.data.friends));
+      setFriends(
+        [...data.data.friends].sort((a: Friendship, b: Friendship) =>
+          a.friend.name.localeCompare(b.friend.name),
+        ),
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load friends");
     }

@@ -76,7 +76,7 @@ export type SocketEvents = {
   "user:disconnected": { userId: string };
   "message:sent": Message;
   "message:delivered": { messageId: string; conversationId: string };
-  "message:read": { messageId: string; conversationId: string; readBy: string };
+  "message:read": { messageId: string; conversationId: string; readBy?: string };
   "typing:start": { conversationId: string; userId: string; username: string };
   "typing:stop": { conversationId: string; userId: string };
   "friend:online": { userId: string };
@@ -86,20 +86,18 @@ export type SocketEvents = {
   notification: Notification;
 };
 
+export type ClientEmitEvents = {
+  "join:conversation": string;
+  "leave:conversation": string;
+  "message:send": { conversationId: string; content: string };
+  "message:delivered": { messageId: string; conversationId: string };
+  "message:read": { messageId: string; conversationId: string };
+  "typing:start": { conversationId: string; username: string };
+  "typing:stop": { conversationId: string };
+};
+
 declare module "next-auth" {
   interface Session {
     user: User & DefaultSession["user"];
-  }
-}
-
-declare module "next-auth/jwt" {
-  interface JWT {
-    id: string;
-    username: string;
-    profilePicture: string | null;
-    bio: string | null;
-    statusMessage: string | null;
-    isOnline: boolean;
-    lastSeen: string | null;
   }
 }

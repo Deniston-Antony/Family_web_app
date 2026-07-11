@@ -99,7 +99,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           statusMessage: token.statusMessage as string | null,
           isOnline: token.isOnline as boolean,
           lastSeen: token.lastSeen as string | null,
-        } as User;
+        } as typeof session.user;
       }
       return session;
     },

@@ -132,14 +132,14 @@ export function useChatSocket() {
 
   const joinConversation = useCallback(
     (conversationId: string) => {
-      emit("join:conversation", conversationId as never);
+      emit("join:conversation", conversationId);
     },
     [emit],
   );
 
   const leaveConversation = useCallback(
     (conversationId: string) => {
-      emit("leave:conversation", conversationId as never);
+      emit("leave:conversation", conversationId);
     },
     [emit],
   );

@@ -3,12 +3,12 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import { useSession } from "next-auth/react";
-import type { SocketEvents } from "@/types";
+import type { SocketEvents, ClientEmitEvents } from "@/types";
 
 interface SocketContextType {
   socket: Socket | null;
   isConnected: boolean;
-  emit: <K extends keyof SocketEvents>(event: K, data: SocketEvents[K]) => void;
+  emit: <K extends keyof ClientEmitEvents>(event: K, data: ClientEmitEvents[K]) => void;
   on: <K extends keyof SocketEvents>(
     event: K,
     callback: (data: SocketEvents[K]) => void,
@@ -61,7 +61,7 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
   }, [session?.user?.id]);
 
   const emit = useCallback(
-    <K extends keyof SocketEvents>(event: K, data: SocketEvents[K]) => {
+    <K extends keyof ClientEmitEvents>(event: K, data: ClientEmitEvents[K]) => {
       socket?.emit(event as string, data);
     },
     [socket],
