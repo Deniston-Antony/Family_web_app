@@ -33,6 +33,9 @@ yarn-error.log*
 .env
 .env*.local
 
+# local notes (may contain secrets)
+procedure.txt
+
 # vercel
 .vercel
 
