@@ -1,0 +1,46 @@
+Then open http://localhost:3000 and log in with:
+
+Email: alice@example.com
+Password: Password123!
+
+
+Test accounts (password: Password123!)
+alice@example.com — has friends & conversations
+bob@example.com — chat history with Alice
+charlie@example.com — friend of Alice
+diana@example.com — pending request to Alice
+
+
+Setup : 
+
+1. Go to the project folder
+cd /Users/denistonantony/Documents/Deniston_Antony/family_web_app
+2. Install dependencies
+npm install
+3. Create your environment file
+
+cp .env.example .env
+Edit .env and set at least:
+
+DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/family_chat?schema=public"
+AUTH_SECRET="your-random-secret-here"
+NEXTAUTH_URL="http://localhost:3000"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXT_PUBLIC_SOCKET_URL="http://localhost:3000"
+Generate AUTH_SECRET:
+
+openssl rand -base64 32
+4. Set up the database
+Make sure PostgreSQL is running, then:
+
+npx prisma migrate dev
+npm run db:seed
+migrate dev creates the tables. db:seed adds sample users and chats.
+
+5. Start the app
+npm run dev
+You should see:
+
+> Ready on http://localhost:3000
+> Socket.IO ready on ws://localhost:3000/api/socketio
+Open http://localhost:3000 in your browser.
