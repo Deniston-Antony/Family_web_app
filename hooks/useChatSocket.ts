@@ -128,7 +128,7 @@ export function useChatSocketEvents() {
 
 /** Socket emit helpers — safe to call from multiple components. */
 export function useChatSocket() {
-  const { emit } = useSocket();
+  const { emit, isConnected } = useSocket();
 
   const joinConversation = useCallback(
     (conversationId: string) => {
@@ -179,5 +179,6 @@ export function useChatSocket() {
     startTyping,
     stopTyping,
     markAsRead,
+    isConnected,
   };
 }

@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
 import { useSession } from "next-auth/react";
+import { getClientSocketUrl } from "@/lib/socket-url";
 import type { SocketEvents, ClientEmitEvents } from "@/types";
 
 interface SocketContextType {
@@ -42,15 +43,20 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL ?? "http://localhost:3000";
+    const socketUrl = getClientSocketUrl();
     const newSocket = io(socketUrl, {
       path: "/api/socketio",
       auth: { userId: session.user.id },
       transports: ["websocket", "polling"],
+      withCredentials: true,
     });
 
     newSocket.on("connect", () => setIsConnected(true));
     newSocket.on("disconnect", () => setIsConnected(false));
+    newSocket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error.message);
+      setIsConnected(false);
+    });
 
     setSocket(newSocket);
 

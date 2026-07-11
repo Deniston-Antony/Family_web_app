@@ -1,6 +1,7 @@
 import { Server as HttpServer } from "http";
 import { Server as SocketServer } from "socket.io";
 import prisma from "@/lib/prisma";
+import { broadcastMessage } from "@/lib/message-broadcast";
 import type { Message } from "@/types";
 
 const onlineUsers = new Map<string, Set<string>>();
@@ -8,7 +9,10 @@ const onlineUsers = new Map<string, Set<string>>();
 export function initializeSocket(server: HttpServer) {
   const io = new SocketServer(server, {
     cors: {
-      origin: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
+      origin: (origin, callback) => {
+        // Reflect the request origin so production works even when env still points at localhost
+        callback(null, origin ?? true);
+      },
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -98,23 +102,7 @@ export function initializeSocket(server: HttpServer) {
           },
         };
 
-        io.to(`conversation:${data.conversationId}`).emit("message:sent", formatted);
-
-        const participants = await prisma.conversationParticipant.findMany({
-          where: { conversationId: data.conversationId, userId: { not: userId } },
-        });
-
-        for (const p of participants) {
-          io.to(`user:${p.userId}`).emit("notification", {
-            id: `msg-${message.id}`,
-            type: "message",
-            title: message.sender.name,
-            message: data.content.slice(0, 100),
-            data: { conversationId: data.conversationId, messageId: message.id },
-            createdAt: new Date().toISOString(),
-            read: false,
-          });
-        }
+        await broadcastMessage(formatted, userId, data.content);
       } catch (error) {
         console.error("Socket message:send error:", error);
       }

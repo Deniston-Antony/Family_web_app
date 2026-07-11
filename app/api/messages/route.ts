@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { apiSuccess, apiError, handleApiError } from "@/lib/api-response";
+import { broadcastMessage } from "@/lib/message-broadcast";
 import { sendMessageSchema } from "@/lib/validations";
 
 const userSelect = {
@@ -57,6 +58,8 @@ export async function POST(request: NextRequest) {
         createdAt: message.sender.createdAt.toISOString(),
       },
     };
+
+    await broadcastMessage(formatted, user.id, content);
 
     return apiSuccess({ message: formatted }, 201);
   } catch (error) {

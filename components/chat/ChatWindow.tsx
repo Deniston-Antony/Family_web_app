@@ -30,8 +30,10 @@ export function ChatWindow({ onBack, showBack }: ChatWindowProps) {
     removeMessage,
     setConversations,
     conversations,
+    addMessage,
+    updateConversationLastMessage,
   } = useChat();
-  const { joinConversation, leaveConversation, sendMessage, startTyping, stopTyping, markAsRead } =
+  const { joinConversation, leaveConversation, sendMessage, startTyping, stopTyping, markAsRead, isConnected } =
     useChatSocket();
   const [loading, setLoading] = useState(false);
   const [editingMessage, setEditingMessage] = useState<{ id: string; content: string } | null>(
@@ -90,8 +92,19 @@ export function ChatWindow({ onBack, showBack }: ChatWindowProps) {
         updateMessage(data.data.message);
       }
       setEditingMessage(null);
-    } else {
+    } else if (isConnected) {
       sendMessage(activeConversation.id, content);
+    } else {
+      const res = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversationId: activeConversation.id, content }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        addMessage(data.data.message);
+        updateConversationLastMessage(activeConversation.id, data.data.message);
+      }
     }
   };
 
