@@ -104,7 +104,10 @@ export function Sidebar({ activeTab, onTabChange, requestCount, unreadCount }: S
           variant="ghost"
           size="sm"
           className="w-full justify-start text-destructive hover:text-destructive"
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={async () => {
+            await signOut({ redirect: false });
+            window.location.assign("/login");
+          }}
         >
           <LogOut className="h-4 w-4" />
           Logout
