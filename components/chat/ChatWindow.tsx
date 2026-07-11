@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Users } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { MessageSkeleton } from "@/components/ui/Skeleton";
@@ -128,7 +128,14 @@ export function ChatWindow({ onBack, showBack }: ChatWindowProps) {
   }
 
   const typing = typingUsers[activeConversation.id] ?? [];
+  const isGroup = activeConversation.type === "GROUP";
   const participant = activeConversation.participant;
+  const groupName = activeConversation.name ?? "Group";
+  const memberCount = activeConversation.memberCount ?? activeConversation.members?.length ?? 0;
+  const onlineCount =
+    activeConversation.onlineCount ??
+    activeConversation.members?.filter((m) => m.isOnline).length ??
+    0;
 
   return (
     <div className="flex h-full flex-col">
@@ -138,21 +145,31 @@ export function ChatWindow({ onBack, showBack }: ChatWindowProps) {
             <ArrowLeft className="h-5 w-5" />
           </button>
         )}
-        <Avatar
-          src={participant.profilePicture}
-          name={participant.name}
-          size="md"
-          showOnline
-          isOnline={participant.isOnline || typing.length > 0}
-        />
+        {isGroup ? (
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+            <Users className="h-5 w-5 text-primary" />
+          </div>
+        ) : (
+          participant && (
+            <Avatar
+              src={participant.profilePicture}
+              name={participant.name}
+              size="md"
+              showOnline
+              isOnline={participant.isOnline || typing.length > 0}
+            />
+          )
+        )}
         <div className="min-w-0 flex-1">
-          <p className="font-medium">{participant.name}</p>
+          <p className="font-medium">{isGroup ? groupName : participant?.name}</p>
           <p className="text-xs text-muted-foreground">
             {typing.length > 0
               ? `${typing.join(", ")} typing...`
-              : participant.isOnline
-                ? "Online"
-                : `Last seen ${formatLastSeen(participant.lastSeen)}`}
+              : isGroup
+                ? `${memberCount} members · ${onlineCount} online`
+                : participant?.isOnline
+                  ? "Online"
+                  : `Last seen ${formatLastSeen(participant?.lastSeen ?? null)}`}
           </p>
         </div>
       </div>
@@ -167,7 +184,9 @@ export function ChatWindow({ onBack, showBack }: ChatWindowProps) {
         ) : messages.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <p className="text-sm text-muted-foreground">
-              No messages yet. Say hello to {participant.name}!
+              {isGroup
+                ? `No messages yet. Say hello to ${groupName}!`
+                : `No messages yet. Say hello to ${participant?.name}!`}
             </p>
           </div>
         ) : (
@@ -176,6 +195,7 @@ export function ChatWindow({ onBack, showBack }: ChatWindowProps) {
               key={message.id}
               message={message}
               isOwn={message.senderId === session?.user?.id}
+              showSenderName={isGroup}
               onEdit={(msg) => setEditingMessage({ id: msg.id, content: msg.content })}
               onDelete={handleDelete}
             />

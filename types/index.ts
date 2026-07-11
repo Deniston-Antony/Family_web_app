@@ -55,7 +55,13 @@ export interface Message {
 
 export interface Conversation {
   id: string;
-  participant: PublicUser;
+  type: "DIRECT" | "GROUP";
+  name?: string | null;
+  createdById?: string | null;
+  participant?: PublicUser;
+  members?: PublicUser[];
+  memberCount?: number;
+  onlineCount?: number;
   lastMessage: Message | null;
   unreadCount: number;
   updatedAt: string;

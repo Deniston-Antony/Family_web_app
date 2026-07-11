@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, X, Bell } from "lucide-react";
+import { Menu, X, Bell, Users } from "lucide-react";
 import { Sidebar, type SidebarTab } from "@/components/layout/Sidebar";
 import { SearchBar } from "@/components/layout/SearchBar";
 import { ConversationList } from "@/components/chat/ConversationList";
@@ -11,6 +11,9 @@ import { FriendRequests } from "@/components/friends/FriendRequests";
 import { ProfilePanel } from "@/components/layout/ProfilePanel";
 import { SettingsPanel } from "@/components/layout/SettingsPanel";
 import { FriendDetails } from "@/components/layout/FriendDetails";
+import { GroupDetails } from "@/components/groups/GroupDetails";
+import { CreateGroupModal } from "@/components/groups/CreateGroupModal";
+import { Button } from "@/components/ui/Button";
 import { useChat } from "@/components/providers/ChatProvider";
 import { useSession } from "next-auth/react";
 import { useFriends } from "@/hooks/useFriends";
@@ -27,11 +30,14 @@ export function ChatApp() {
   const [mobileView, setMobileView] = useState<MobileView>("conversations");
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
   const {
     setActiveConversation,
     setSelectedFriend,
     selectedFriend,
     conversations,
+    setConversations,
+    activeConversation,
   } = useChat();
   const { data: session } = useSession();
   const { requests } = useFriends();
@@ -46,8 +52,21 @@ export function ChatApp() {
 
   const handleSelectConversation = (conversation: Conversation) => {
     setActiveConversation(conversation);
-    setSelectedFriend(conversation.participant);
+    if (conversation.type === "GROUP") {
+      setSelectedFriend(null);
+    } else {
+      setSelectedFriend(conversation.participant ?? null);
+    }
     setMobileView("chat");
+  };
+
+  const handleGroupCreated = (conversation: Conversation) => {
+    setConversations((prev) => {
+      const exists = prev.some((c) => c.id === conversation.id);
+      if (exists) return prev;
+      return [conversation, ...prev];
+    });
+    handleSelectConversation(conversation);
   };
 
   const handleSelectFriend = (friend: PublicUser) => {
@@ -179,8 +198,12 @@ export function ChatApp() {
             {renderSidebarContent()}
           </div>
           <div className="h-1/2 overflow-y-auto scrollbar-thin">
-            <div className="border-b border-border px-4 py-3">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <h3 className="text-sm font-semibold">Messages</h3>
+              <Button size="sm" variant="outline" onClick={() => setShowCreateGroup(true)}>
+                <Users className="h-3.5 w-3.5" />
+                Group
+              </Button>
             </div>
             <ConversationList onSelect={handleSelectConversation} />
           </div>
@@ -189,7 +212,13 @@ export function ChatApp() {
         <div className="h-[calc(100vh-3.5rem)] overflow-y-auto scrollbar-thin lg:hidden">
           {renderSidebarContent()}
           <div className="border-b border-border px-4 py-3">
-            <h3 className="text-sm font-semibold">Messages</h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold">Messages</h3>
+              <Button size="sm" variant="outline" onClick={() => setShowCreateGroup(true)}>
+                <Users className="h-3.5 w-3.5" />
+                Group
+              </Button>
+            </div>
           </div>
           <ConversationList onSelect={handleSelectConversation} />
         </div>
@@ -207,11 +236,23 @@ export function ChatApp() {
       <div
         className={cn(
           "w-full border-l border-border lg:w-80",
-          mobileView !== "details" ? "hidden lg:block" : "block",
+          mobileView !== "details" && activeConversation?.type !== "GROUP"
+            ? "hidden lg:block"
+            : "block",
         )}
       >
-        <FriendDetails friend={selectedFriend} onMessage={handleMessageFriend} />
+        {activeConversation?.type === "GROUP" ? (
+          <GroupDetails conversation={activeConversation} />
+        ) : (
+          <FriendDetails friend={selectedFriend} onMessage={handleMessageFriend} />
+        )}
       </div>
+
+      <CreateGroupModal
+        open={showCreateGroup}
+        onClose={() => setShowCreateGroup(false)}
+        onCreated={handleGroupCreated}
+      />
     </div>
   );
 }

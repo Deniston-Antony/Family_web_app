@@ -109,16 +109,46 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
           : user;
 
       setConversations((prev) =>
-        prev.map((c) =>
-          c.participant.id === userId ? { ...c, participant: patchUser(c.participant) } : c,
-        ),
+        prev.map((c) => {
+          if (c.type === "GROUP" && c.members) {
+            const hasMember = c.members.some((m) => m.id === userId);
+            if (!hasMember) return c;
+            const members = c.members.map((m) => (m.id === userId ? patchUser(m) : m));
+            return {
+              ...c,
+              members,
+              onlineCount: members.filter((m) => m.isOnline).length,
+            };
+          }
+
+          if (c.participant?.id === userId) {
+            return { ...c, participant: patchUser(c.participant) };
+          }
+
+          return c;
+        }),
       );
 
-      setActiveConversation((prev) =>
-        prev && prev.participant.id === userId
-          ? { ...prev, participant: patchUser(prev.participant) }
-          : prev,
-      );
+      setActiveConversation((prev) => {
+        if (!prev) return prev;
+
+        if (prev.type === "GROUP" && prev.members) {
+          const hasMember = prev.members.some((m) => m.id === userId);
+          if (!hasMember) return prev;
+          const members = prev.members.map((m) => (m.id === userId ? patchUser(m) : m));
+          return {
+            ...prev,
+            members,
+            onlineCount: members.filter((m) => m.isOnline).length,
+          };
+        }
+
+        if (prev.participant?.id === userId) {
+          return { ...prev, participant: patchUser(prev.participant) };
+        }
+
+        return prev;
+      });
 
       setSelectedFriend((prev) => (prev && prev.id === userId ? patchUser(prev) : prev));
     },

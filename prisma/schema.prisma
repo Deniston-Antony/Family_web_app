@@ -20,6 +20,11 @@ enum MessageStatus {
   READ
 }
 
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
 model User {
   id             String    @id @default(cuid())
   name           String
@@ -41,6 +46,7 @@ model User {
   conversationParticipants ConversationParticipant[]
   sentMessages             Message[]
   sessions                 Session[]
+  createdGroups            Conversation[]            @relation("GroupCreator")
 
   @@index([username])
   @@index([name])
@@ -79,12 +85,19 @@ model Friendship {
 }
 
 model Conversation {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String           @id @default(cuid())
+  type        ConversationType @default(DIRECT)
+  name        String?
+  createdById String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
+  createdBy    User?                     @relation("GroupCreator", fields: [createdById], references: [id], onDelete: SetNull)
   participants ConversationParticipant[]
   messages     Message[]
+
+  @@index([type])
+  @@index([createdById])
 }
 
 model ConversationParticipant {

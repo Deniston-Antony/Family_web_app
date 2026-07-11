@@ -60,6 +60,14 @@ export const friendRequestSchema = z.object({
   receiverId: z.string().cuid(),
 });
 
+export const createGroupSchema = z.object({
+  name: z.string().min(2, "Group name must be at least 2 characters").max(50),
+  memberIds: z
+    .array(z.string().cuid())
+    .min(1, "Add at least one friend")
+    .max(49, "Too many members"),
+});
+
 export const searchSchema = z.object({
   query: z.string().min(1).max(100),
 });

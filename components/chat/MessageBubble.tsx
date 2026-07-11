@@ -9,11 +9,18 @@ import type { Message } from "@/types";
 interface MessageBubbleProps {
   message: Message;
   isOwn: boolean;
+  showSenderName?: boolean;
   onEdit: (message: Message) => void;
   onDelete: (messageId: string) => void;
 }
 
-export function MessageBubble({ message, isOwn, onEdit, onDelete }: MessageBubbleProps) {
+export function MessageBubble({
+  message,
+  isOwn,
+  showSenderName = false,
+  onEdit,
+  onDelete,
+}: MessageBubbleProps) {
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -37,6 +44,11 @@ export function MessageBubble({ message, isOwn, onEdit, onDelete }: MessageBubbl
   return (
     <div className={cn("group flex", isOwn ? "justify-end" : "justify-start")}>
       <div className={cn("relative max-w-[75%]", isOwn ? "items-end" : "items-start")}>
+        {showSenderName && !isOwn && message.sender && (
+          <p className="mb-1 px-1 text-xs font-medium text-muted-foreground">
+            {message.sender.name}
+          </p>
+        )}
         <div
           className={cn(
             "rounded-2xl px-4 py-2.5 shadow-sm",
