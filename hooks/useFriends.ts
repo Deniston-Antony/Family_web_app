@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSocket } from "@/components/providers/SocketProvider";
 import type { Friendship, FriendRequest } from "@/types";
 
 export function useFriends() {
+  const { on, off, isConnected } = useSocket();
   const [friends, setFriends] = useState<Friendship[]>([]);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,6 +46,40 @@ export function useFriends() {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    const handleFriendOnline = ({ userId }: { userId: string }) => {
+      setFriends((prev) =>
+        prev.map((f) =>
+          f.friend.id === userId ? { ...f, friend: { ...f.friend, isOnline: true } } : f,
+        ),
+      );
+    };
+
+    const handleFriendOffline = ({ userId, lastSeen }: { userId: string; lastSeen: string }) => {
+      setFriends((prev) =>
+        prev.map((f) =>
+          f.friend.id === userId
+            ? { ...f, friend: { ...f.friend, isOnline: false, lastSeen } }
+            : f,
+        ),
+      );
+    };
+
+    on("friend:online", handleFriendOnline);
+    on("friend:offline", handleFriendOffline);
+
+    return () => {
+      off("friend:online", handleFriendOnline);
+      off("friend:offline", handleFriendOffline);
+    };
+  }, [on, off]);
+
+  useEffect(() => {
+    if (isConnected) {
+      fetchFriends();
+    }
+  }, [isConnected, fetchFriends]);
 
   const sendRequest = async (receiverId: string) => {
     const res = await fetch("/api/friends", {

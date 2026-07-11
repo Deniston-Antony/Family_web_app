@@ -9,7 +9,7 @@ import type { Message } from "@/types";
 
 /** Register socket listeners once at the app level (e.g. in ChatApp). */
 export function useChatSocketEvents() {
-  const { on, off, emit } = useSocket();
+  const { on, off, emit, isConnected } = useSocket();
   const { data: session } = useSession();
   const { addNotification } = useNotifications();
   const {
@@ -18,6 +18,7 @@ export function useChatSocketEvents() {
     setTypingUser,
     updateConversationLastMessage,
     setConversations,
+    updateUserPresence,
   } = useChat();
 
   const activeConversationRef = useRef(activeConversation);
@@ -72,30 +73,11 @@ export function useChatSocketEvents() {
     };
 
     const handleFriendOnline = (data: { userId: string }) => {
-      setConversations((prev) =>
-        prev.map((c) =>
-          c.participant.id === data.userId
-            ? { ...c, participant: { ...c.participant, isOnline: true } }
-            : c,
-        ),
-      );
+      updateUserPresence(data.userId, true);
     };
 
     const handleFriendOffline = (data: { userId: string; lastSeen: string }) => {
-      setConversations((prev) =>
-        prev.map((c) =>
-          c.participant.id === data.userId
-            ? {
-                ...c,
-                participant: {
-                  ...c.participant,
-                  isOnline: false,
-                  lastSeen: data.lastSeen,
-                },
-              }
-            : c,
-        ),
-      );
+      updateUserPresence(data.userId, false, data.lastSeen);
     };
 
     on("message:sent", handleMessageSent);
@@ -122,8 +104,23 @@ export function useChatSocketEvents() {
     setTypingUser,
     updateConversationLastMessage,
     addNotification,
-    setConversations,
+    updateUserPresence,
   ]);
+
+  useEffect(() => {
+    if (!isConnected) return;
+
+    fetch("/api/conversations")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          setConversations(data.data.conversations);
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to refresh conversations:", error);
+      });
+  }, [isConnected, setConversations]);
 }
 
 /** Socket emit helpers — safe to call from multiple components. */

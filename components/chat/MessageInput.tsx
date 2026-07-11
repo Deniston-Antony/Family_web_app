@@ -91,9 +91,9 @@ export function MessageInput({
             disabled={disabled}
             rows={1}
             className={cn(
-              "max-h-32 min-h-[44px] w-full resize-none rounded-2xl border border-input bg-background/50 px-4 py-3 pr-12 text-sm",
+              "max-h-32 min-h-[44px] w-full resize-none rounded-2xl border border-input bg-background px-4 py-3 pr-12 text-sm",
               "placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              "disabled:opacity-50",
+              "disabled:cursor-not-allowed disabled:opacity-50",
             )}
             style={{ height: "auto" }}
             onInput={(e) => {

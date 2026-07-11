@@ -18,6 +18,7 @@ interface ChatContextType {
   setSelectedFriend: (friend: PublicUser | null) => void;
   setTypingUser: (conversationId: string, username: string, isTyping: boolean) => void;
   updateConversationLastMessage: (conversationId: string, message: Message) => void;
+  updateUserPresence: (userId: string, isOnline: boolean, lastSeen?: string | null) => void;
 }
 
 const ChatContext = createContext<ChatContextType>({
@@ -35,6 +36,7 @@ const ChatContext = createContext<ChatContextType>({
   setSelectedFriend: () => {},
   setTypingUser: () => {},
   updateConversationLastMessage: () => {},
+  updateUserPresence: () => {},
 });
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
@@ -95,6 +97,34 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     [],
   );
 
+  const updateUserPresence = useCallback(
+    (userId: string, isOnline: boolean, lastSeen?: string | null) => {
+      const patchUser = (user: PublicUser): PublicUser =>
+        user.id === userId
+          ? {
+              ...user,
+              isOnline,
+              ...(lastSeen !== undefined ? { lastSeen } : {}),
+            }
+          : user;
+
+      setConversations((prev) =>
+        prev.map((c) =>
+          c.participant.id === userId ? { ...c, participant: patchUser(c.participant) } : c,
+        ),
+      );
+
+      setActiveConversation((prev) =>
+        prev && prev.participant.id === userId
+          ? { ...prev, participant: patchUser(prev.participant) }
+          : prev,
+      );
+
+      setSelectedFriend((prev) => (prev && prev.id === userId ? patchUser(prev) : prev));
+    },
+    [],
+  );
+
   return (
     <ChatContext.Provider
       value={{
@@ -112,6 +142,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         setSelectedFriend,
         setTypingUser,
         updateConversationLastMessage,
+        updateUserPresence,
       }}
     >
       {children}
