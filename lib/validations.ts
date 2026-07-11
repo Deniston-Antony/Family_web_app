@@ -27,6 +27,21 @@ export const registerSchema = z
 export const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(1, "Password is required"),
+  totpCode: z.string().optional(),
+});
+
+export const enableTwoFactorSchema = z.object({
+  secret: z.string().min(16),
+  code: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit code"),
+});
+
+export const disableTwoFactorSchema = z.object({
+  password: z.string().min(1, "Password is required"),
+  code: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit code"),
+});
+
+export const verifyTwoFactorSchema = z.object({
+  code: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit code"),
 });
 
 export const updateProfileSchema = z.object({

@@ -10,6 +10,7 @@ export interface User {
   statusMessage: string | null;
   isOnline: boolean;
   lastSeen: string | null;
+  twoFactorEnabled?: boolean;
   createdAt?: string;
 }
 

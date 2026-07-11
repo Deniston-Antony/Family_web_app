@@ -5,7 +5,9 @@ import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { loginSchema } from "@/lib/validations";
 import { checkRateLimit, recordFailedAttempt, resetRateLimit } from "@/lib/rate-limit";
-import type { User } from "@/types";
+import { verifyStoredTotpCode } from "@/lib/two-factor";
+
+export const TWO_FACTOR_REQUIRED_ERROR = "2FA_REQUIRED";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -19,6 +21,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        totpCode: { label: "Verification Code", type: "text" },
       },
       async authorize(credentials) {
         const parsed = loginSchema.safeParse(credentials);
@@ -26,7 +29,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           return null;
         }
 
-        const { email, password } = parsed.data;
+        const { email, password, totpCode } = parsed.data;
         const rateLimit = checkRateLimit(email.toLowerCase());
         if (!rateLimit.allowed) {
           throw new Error(`Too many login attempts. Try again in ${rateLimit.retryAfter} seconds.`);
@@ -45,6 +48,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!isValid) {
           recordFailedAttempt(email.toLowerCase());
           return null;
+        }
+
+        if (user.twoFactorEnabled && user.twoFactorSecret) {
+          if (!totpCode) {
+            throw new Error(TWO_FACTOR_REQUIRED_ERROR);
+          }
+
+          if (!verifyStoredTotpCode(user.twoFactorSecret, totpCode)) {
+            recordFailedAttempt(email.toLowerCase());
+            throw new Error("Invalid verification code");
+          }
         }
 
         resetRateLimit(email.toLowerCase());
@@ -75,6 +89,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             statusMessage: true,
             isOnline: true,
             lastSeen: true,
+            twoFactorEnabled: true,
           },
         });
         if (dbUser) {
@@ -84,6 +99,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.statusMessage = dbUser.statusMessage;
           token.isOnline = dbUser.isOnline;
           token.lastSeen = dbUser.lastSeen?.toISOString() ?? null;
+          token.twoFactorEnabled = dbUser.twoFactorEnabled;
         }
       }
       return token;
@@ -99,6 +115,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           statusMessage: token.statusMessage as string | null,
           isOnline: token.isOnline as boolean,
           lastSeen: token.lastSeen as string | null,
+          twoFactorEnabled: token.twoFactorEnabled as boolean,
         } as typeof session.user;
       }
       return session;

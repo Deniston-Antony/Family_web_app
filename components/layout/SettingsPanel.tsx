@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
 import { Camera, Save, Sun, Moon } from "lucide-react";
+import { TwoFactorSettings } from "@/components/auth/TwoFactorSettings";
 
 export function SettingsPanel() {
   const { data: session, update } = useSession();
@@ -179,6 +180,8 @@ export function SettingsPanel() {
           </Button>
         </div>
       </div>
+
+      <TwoFactorSettings onMessage={setMessage} />
 
       <div className="space-y-4">
         <h3 className="text-sm font-semibold text-muted-foreground">Change Password</h3>
