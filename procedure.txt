@@ -3,7 +3,6 @@ Then open http://localhost:3000 and log in with:
 Email: alice@example.com
 Password: Password123!
 
-
 Test accounts (password: Password123!)
 alice@example.com — has friends & conversations
 bob@example.com — chat history with Alice

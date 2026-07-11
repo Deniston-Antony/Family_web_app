@@ -4,7 +4,7 @@ import next from "next";
 import { initializeSocket, setIO } from "./socket";
 
 const dev = process.env.NODE_ENV !== "production";
-const hostname = "localhost";
+const hostname = process.env.HOSTNAME ?? "0.0.0.0";
 const port = parseInt(process.env.PORT ?? "3000", 10);
 
 const app = next({ dev, hostname, port });
@@ -25,7 +25,7 @@ app.prepare().then(() => {
   const io = initializeSocket(server);
   setIO(io);
 
-  server.listen(port, () => {
+  server.listen(port, hostname, () => {
     console.log(`> Ready on http://${hostname}:${port}`);
     console.log(`> Socket.IO ready on ws://${hostname}:${port}/api/socketio`);
   });
