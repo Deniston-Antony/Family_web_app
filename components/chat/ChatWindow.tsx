@@ -143,7 +143,7 @@ export function ChatWindow({ onBack, showBack }: ChatWindowProps) {
           name={participant.name}
           size="md"
           showOnline
-          isOnline={participant.isOnline}
+          isOnline={participant.isOnline || typing.length > 0}
         />
         <div className="min-w-0 flex-1">
           <p className="font-medium">{participant.name}</p>

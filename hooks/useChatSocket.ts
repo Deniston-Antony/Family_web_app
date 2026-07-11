@@ -26,6 +26,10 @@ export function useChatSocketEvents() {
 
   useEffect(() => {
     const handleMessageSent = (message: Message) => {
+      if (message.senderId !== session?.user?.id) {
+        updateUserPresence(message.senderId, true);
+      }
+
       if (activeConversationRef.current?.id === message.conversationId) {
         addMessage(message);
       }
@@ -58,6 +62,7 @@ export function useChatSocketEvents() {
       username: string;
     }) => {
       if (data.userId !== session?.user?.id) {
+        updateUserPresence(data.userId, true);
         setTypingUser(data.conversationId, data.username, true);
       }
     };

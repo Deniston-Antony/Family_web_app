@@ -103,6 +103,7 @@ export function initializeSocket(server: HttpServer) {
         };
 
         await broadcastMessage(formatted, userId, data.content);
+        io.emit("friend:online", { userId });
       } catch (error) {
         console.error("Socket message:send error:", error);
       }
@@ -160,6 +161,7 @@ export function initializeSocket(server: HttpServer) {
     });
 
     socket.on("typing:start", (data: { conversationId: string; username: string }) => {
+      io.emit("friend:online", { userId });
       socket.to(`conversation:${data.conversationId}`).emit("typing:start", {
         conversationId: data.conversationId,
         userId,

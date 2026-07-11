@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 import { useSocket } from "@/components/providers/SocketProvider";
 import type { Friendship, FriendRequest } from "@/types";
 
 export function useFriends() {
+  const { data: session } = useSession();
   const { on, off, isConnected } = useSocket();
   const [friends, setFriends] = useState<Friendship[]>([]);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
@@ -48,12 +50,16 @@ export function useFriends() {
   }, [refresh]);
 
   useEffect(() => {
-    const handleFriendOnline = ({ userId }: { userId: string }) => {
+    const markOnline = (userId: string) => {
       setFriends((prev) =>
         prev.map((f) =>
           f.friend.id === userId ? { ...f, friend: { ...f.friend, isOnline: true } } : f,
         ),
       );
+    };
+
+    const handleFriendOnline = ({ userId }: { userId: string }) => {
+      markOnline(userId);
     };
 
     const handleFriendOffline = ({ userId, lastSeen }: { userId: string; lastSeen: string }) => {
@@ -66,14 +72,28 @@ export function useFriends() {
       );
     };
 
+    const handleTypingStart = ({ userId }: { userId: string }) => {
+      markOnline(userId);
+    };
+
+    const handleMessageSent = ({ senderId }: { senderId: string }) => {
+      if (senderId !== session?.user?.id) {
+        markOnline(senderId);
+      }
+    };
+
     on("friend:online", handleFriendOnline);
     on("friend:offline", handleFriendOffline);
+    on("typing:start", handleTypingStart);
+    on("message:sent", handleMessageSent);
 
     return () => {
       off("friend:online", handleFriendOnline);
       off("friend:offline", handleFriendOffline);
+      off("typing:start", handleTypingStart);
+      off("message:sent", handleMessageSent);
     };
-  }, [on, off]);
+  }, [on, off, session?.user?.id]);
 
   useEffect(() => {
     if (isConnected) {
